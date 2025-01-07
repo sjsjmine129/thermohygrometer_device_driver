@@ -16,8 +16,8 @@ int main() {
         printf("1. read: %d %s\n", ret, buff);
     }
 
-    ret = write(dev, "B", 3);
-    printf("write: %d \n", ret);
+    // ret = write(dev, "B", 3);
+    // printf("write: %d \n", ret);
     
     memset(buff, '\0', sizeof(buff)); //reset first
 
