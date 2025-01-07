@@ -21,7 +21,20 @@ static char *device_name = "SHT31_Driver";
 static struct i2c_client *sht31_client;
 module_param(device_name, charp, S_IRUGO);
 
+int device_driver_open(struct inode *inode, struct file *file)
+{
+	/* data to store state data between syscall */
+	// file->private_data = kmalloc(1024, GFP_KERNEL); // you have to release this in release function
+	
+	printk(KERN_ALERT "Open Device!\n");
+	return 0;
+}
 
+int device_driver_release(struct inode *inode, struct file *file)
+{
+	printk(KERN_ALERT "Release Device!\n");
+	return 0;
+}
 
 // Function to read temperature and humidity from SHT31
 static int sht31_read_sensor_data(char *buf)
