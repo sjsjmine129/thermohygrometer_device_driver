@@ -98,14 +98,7 @@ static int __init device_driver_init(void)
 	printk(KERN_INFO "Load Device Driver: %s\n", device_name);
 
     /* try allocating character device */
-	/**
-	 * alloc_chrdev_region 
-	 * @param dev: pointer to store major and minor number
-	 * @param baseminor: starting minor number
-	 * @param count: number of devices to allocate
-	 * @param name: name of the device driver (show in /dev/)
-	 */
-	if (alloc_chrdev_region(&device_dev, MINOR_BASE, 1, device_name)) { // set name
+	if (alloc_chrdev_region(&device_dev, MINOR_BASE, 1, device_name)) {
 		printk(KERN_ALERT "[%s] alloc_chrdev_region failed\n", __func__);
 		goto err_return;
 	}
