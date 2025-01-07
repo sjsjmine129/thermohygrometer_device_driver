@@ -1,1 +1,0 @@
-cmd_/home/pi/Desktop/DeviceDriver/cDev.ko := ld -r -EL  -maarch64elf -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T arch/arm64/module.lds -o /home/pi/Desktop/DeviceDriver/cDev.ko /home/pi/Desktop/DeviceDriver/cDev.o /home/pi/Desktop/DeviceDriver/cDev.mod.o;  true
