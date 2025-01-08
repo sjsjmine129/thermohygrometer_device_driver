@@ -170,7 +170,7 @@ static int __init device_driver_init(void)
         return -1;
     }
 
-    if ((device_class = class_create(THIS_MODULE, device_name)) == NULL) {
+    if ((device_class = class_create(device_name)) == NULL) {
         cdev_del(&device_cdev);
         unregister_chrdev_region(device_dev, 1);
         return -1;
