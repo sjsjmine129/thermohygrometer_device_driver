@@ -95,12 +95,13 @@ static struct file_operations fops = {
 
 static int __init device_driver_init(void)
 {
+	int ret;
 	printk(KERN_INFO "Load Device Driver: %s\n", device_name);
 
     /* try allocating character device */
 	if (alloc_chrdev_region(&device_dev, MINOR_BASE, 1, device_name)) {
-		printk(KERN_ALERT "[%s] alloc_chrdev_region failed\n", __func__);
-		goto err_return;
+		printk(KERN_ALERT "[%s] alloc_chrdev_region failed\n");
+		return -1;
 	}
 
     /* init cdev */
@@ -110,31 +111,31 @@ static int __init device_driver_init(void)
 
     /* add cdev */
 	if (cdev_add(&device_cdev, device_dev, 1)) {
-		printk(KERN_ALERT "[%s] cdev_add failed\n", __func__);
-		goto unreg_device;
+		printk(KERN_ALERT "[%s] cdev_add failed\n");
+        unregister_chrdev_region(device_dev, 1);
+        return -1;
 	}
 
     if ((device_class = class_create(THIS_MODULE, device_name)) == NULL) {
-		printk(KERN_ALERT "[%s] class_add failed\n", __func__);
-		goto unreg_cdev;
+		printk(KERN_ALERT "[%s] class_add failed\n");
+        cdev_del(&device_cdev);
+        unregister_chrdev_region(device_dev, 1);
+        return -1;
 	}
 
 	if (device_create(device_class, NULL, device_dev, NULL, device_name) == NULL) {
-		goto unreg_class;
+        class_destroy(device_class);
+        cdev_del(&device_cdev);
+        unregister_chrdev_region(device_dev, 1);
+        return -1;
 	}
+
+	// Register I2C driver 
+
 
 
 	printk(KERN_INFO "Successfully Load Device Driver: Major = %d, Minor = %d\n", MAJOR(device_dev), MINOR(device_dev));
     return 0;
-
-unreg_class:
-	class_destroy(device_class);
-unreg_cdev:
-	cdev_del(&device_cdev);
-unreg_device:
-	unregister_chrdev_region(device_dev, 1);
-err_return:
-	return -1;
 }
 
 
@@ -145,15 +146,12 @@ static void __exit device_driver_exit(void)
 		kfree(device_record);
 	}
 
-    device_destroy(device_class, device_dev);
-    cdev_del(&device_cdev);
-	class_destroy(device_class);
+	// Unregister I2C driver
+	//i2c_del_driver(&sht31_driver);
 
-	/**
-	 * unregister_chrdev_region
-	 * @param dev: major and minor number to be unregistered
-	 * @param count: number of devices to unregister
-	 */
+    device_destroy(device_class, device_dev);
+    class_destroy(device_class);
+	cdev_del(&device_cdev);
     unregister_chrdev_region(device_dev, 1);
     printk(KERN_ALERT "Unload Device Driver\n");
 }

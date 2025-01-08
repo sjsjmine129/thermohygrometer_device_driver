@@ -7,7 +7,7 @@
 ifneq ($(KERNELRELEASE),)
 # obj-m := hello.o
 # obj-m := alloc_test.o
-	obj-m := cDev.o
+	obj-m := example.o
 
 # called by make
 else

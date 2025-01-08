@@ -16,9 +16,9 @@ static dev_t device_dev;
 static struct class *device_class;
 static struct cdev device_cdev;
 
+static struct i2c_client *sht31_client;
 
 static char *device_name = "SHT31_Driver";
-static struct i2c_client *sht31_client;
 module_param(device_name, charp, S_IRUGO);
 
 int device_driver_open(struct inode *inode, struct file *file)
@@ -30,6 +30,7 @@ int device_driver_open(struct inode *inode, struct file *file)
 	return 0;
 }
 
+// release function for device driver
 int device_driver_release(struct inode *inode, struct file *file)
 {
 	printk(KERN_ALERT "Release Device!\n");
@@ -113,7 +114,7 @@ static struct file_operations fops = {
 };
 
 
-
+//init for I2C driver
 static int sht31_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
     sht31_client = client;
@@ -121,7 +122,7 @@ static int sht31_probe(struct i2c_client *client, const struct i2c_device_id *id
     return 0;
 }
 
-
+//remoce for I2C driver
 static int sht31_remove(struct i2c_client *client)
 {
     printk(KERN_INFO "SHT31 sensor removed\n");
