@@ -7,6 +7,8 @@
 #include <linux/device.h>
 #include <linux/cdev.h>
 #include <linux/i2c.h> // I2C subsystem
+#include <linux/delay.h> 
+#include <linux/string.h> 
 
 #define MINOR_BASE 0
 #define SHT31_I2C_ADDRESS 0x44 // Default I2C address of the SHT31
@@ -65,11 +67,31 @@ static int sht31_read_sensor_data(char *buf)
     int temp_raw = (data[0] << 8) | data[1];
     int hum_raw = (data[3] << 8) | data[4];
 
-    float temperature = -45 + 175 * (temp_raw / 65535.0);
-    float humidity = 100 * (hum_raw / 65535.0);
+
+    // float temperature = -45 + 175 * (temp_raw / 65535.0);
+    // float humidity = 100 * (hum_raw / 65535.0);
 
     // Format and copy data to user buffer
-    snprintf(buf, PAGE_SIZE, "Temperature: %.2f °C\nHumidity: %.2f %%\n", temperature, humidity);
+    // Format and copy data to user buffer
+    char temp_str[32];
+    char hum_str[32];
+    int len;
+
+    // len = snprintf(temp_str, sizeof(temp_str), "%.2f °C", temperature);
+    len = snprintf(temp_str, sizeof(temp_str), "%d °C", temp_raw);
+    temp_str[sizeof(temp_str) - 1] = '\0'; // Ensure null-termination
+
+    // len = snprintf(hum_str, sizeof(hum_str), "%.2f %%", humidity);
+    len = snprintf(hum_str, sizeof(hum_str), "%d %%", hum_raw);
+    hum_str[sizeof(hum_str) - 1] = '\0'; // Ensure null-termination
+
+    // Copy formatted strings to buffer
+    strcpy(buf, "Temperature: ");
+    strcat(buf, temp_str);
+    strcat(buf, "\nHumidity: ");
+    strcat(buf, hum_str);
+    strcat(buf, "\n");
+
     return 0;
 }
 
@@ -115,7 +137,7 @@ static struct file_operations fops = {
 
 
 //init for I2C driver
-static int sht31_probe(struct i2c_client *client, const struct i2c_device_id *id)
+static int sht31_probe(struct i2c_client *client)
 {
     sht31_client = client;
     printk(KERN_INFO "SHT31 sensor detected\n");
@@ -123,10 +145,10 @@ static int sht31_probe(struct i2c_client *client, const struct i2c_device_id *id
 }
 
 //remoce for I2C driver
-static int sht31_remove(struct i2c_client *client)
+static void sht31_remove(struct i2c_client *client)
 {
     printk(KERN_INFO "SHT31 sensor removed\n");
-    return 0;
+    return;
 }
 
 
