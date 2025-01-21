@@ -1,1 +1,1 @@
-https://github.com/bitbank2/LCD1602.git
+https://github.com/DavidAntliff/esp32-i2c-lcd1602.git
