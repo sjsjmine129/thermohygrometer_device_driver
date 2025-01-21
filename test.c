@@ -1,3 +1,1 @@
-Oops: Unable to determine board revision from /proc/cpuinfo
- -> No "Hardware" line
- ->  You'd best google the error to find out why.
+https://github.com/bitbank2/LCD1602.git
