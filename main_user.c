@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
     {
         driver_error(sht31_dev);
 
-        strcpy(buff, "SHT31 Open Error\nEnter to Close");
+        strcpy(buff, "SHT31 Open Error\nExit with Enter.");
 
         ret = write(lcd1602_dev, buff, strlen(buff)+1);
         if(ret != strlen(buff))

@@ -17,8 +17,6 @@ static struct cdev device_cdev;
 
 int sensor_driver_open(struct inode *inode, struct file *file)
 {
-    return -1;
-    
 	unsigned int minor = iminor(inode);
 	struct i2c_client *client;
 	struct i2c_adapter *adap;
