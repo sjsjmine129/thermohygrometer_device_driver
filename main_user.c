@@ -135,58 +135,73 @@ int main(int argc, char* argv[])
     char buff[100];
     int ret;
     
-    sht31_dev = open("/dev/sht31_driver", O_RDONLY);
-    if(sht31_dev <= 0)
-    {
-        driver_error(sht31_dev);
-        exit(EXIT_FAILURE);
-    }
+
     lcd1602_dev = open("/dev/lcd1602_driver", O_WRONLY);
     if(lcd1602_dev <= 0)
     {
-        close(sht31_dev);
         driver_error(lcd1602_dev);
         exit(EXIT_FAILURE);
     }
 
-    ret = ioctl(sht31_dev, 0x44, sensor_mode);
-    if(ret != 0)
+    sht31_dev = open("/dev/sht31_driver", O_RDONLY);
+
+    if(sht31_dev <= 0) // sensor driver open fail
     {
-        driver_error(ret);
-        exit(EXIT_FAILURE);
-    }
+        driver_error(sht31_dev);
 
-    printf("Connect to SHT31 & LCD1602 success\n");
-    print_mode();
+        strcpy(buff, "SHT31 Open Error\nEnter to Close");
 
-
-    for(int i = 0; i < repeat; i += adder)
-    {
-        memset(buff, '\0', sizeof(buff));
-        ret = read(sht31_dev, buff, 100);
-        if(ret <= 0)
-        {
-            driver_error(ret);
-            i -= adder;
-            continue;
-        }
-        
         ret = write(lcd1602_dev, buff, strlen(buff)+1);
         if(ret != strlen(buff))
         {
             driver_error(ret);
-            i -= adder;
-            continue;
+            exit(EXIT_FAILURE);
+        }
+    }
+    else // sensor driver open success
+    {
+        ret = ioctl(sht31_dev, 0x44, sensor_mode);
+        if(ret != 0)
+        {
+            driver_error(ret);
+            exit(EXIT_FAILURE);
         }
 
-        sleep(1);
+        printf("Connect to SHT31 & LCD1602 success\n");
+        print_mode();
+
+
+        for(int i = 0; i < repeat; i += adder)
+        {
+            memset(buff, '\0', sizeof(buff));
+            ret = read(sht31_dev, buff, 100);
+            if(ret <= 0)
+            {
+                driver_error(ret);
+                i -= adder;
+                continue;
+            }
+            
+            ret = write(lcd1602_dev, buff, strlen(buff)+1);
+            if(ret != strlen(buff))
+            {
+                driver_error(ret);
+                i -= adder;
+                continue;
+            }
+
+            sleep(1);
+        }
     }
 
     printf("Press enter to close device\n");
     getchar();
 
 
-    close(sht31_dev);
+    if(sht31_dev > 0)
+    {
+        close(sht31_dev);
+    }
     close(lcd1602_dev);
     printf("Close success\n");
 

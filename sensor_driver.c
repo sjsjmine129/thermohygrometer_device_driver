@@ -15,10 +15,10 @@ static dev_t device_dev;
 static struct class *device_class;
 static struct cdev device_cdev;
 
-int checker =0;
-
 int sensor_driver_open(struct inode *inode, struct file *file)
 {
+    return -1;
+    
 	unsigned int minor = iminor(inode);
 	struct i2c_client *client;
 	struct i2c_adapter *adap;
@@ -74,11 +74,7 @@ int sensor_driver_release(struct inode *inode, struct file *file)
 
 
 static ssize_t sensor_driver_read(struct file *file, char __user *buf, size_t count, loff_t *offset)
-{ checker++;
-        if(checker%3==0){
-
-    return -1;
-}
+{
     int ret;
 
     if(send_command_to_sensor(REQUEST_DATA) != 0)
