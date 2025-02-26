@@ -36,7 +36,7 @@ int lcd_driver_open(struct inode *inode, struct file *file)
     if(!client)
     {
         i2c_put_adapter(adap);
-        return -ENODEV;
+        return -ENOMEM;
     }
     snprintf(client->name, I2C_NAME_SIZE, "i2c-dev %d", adap->nr);
 
@@ -95,25 +95,22 @@ static ssize_t lcd_driver_write(struct file *file, const char __user *buf, size_
 
     if(newline_pos != NULL) //two line
     { 
-
         //write first line
         int len = (int)(newline_pos - str);
         send_command_to_lcd(MOVE_CURSOR_1LINE); //set curcor first line
-        ret += write_text_to_lcd(str, len);
+        ret += write_text_to_lcd(str, len); //error?
 
         //write second line
         len = strlen(newline_pos +1);
         send_command_to_lcd(MOVE_CURSOR_2LINE); //set curcor second line
         ret += write_text_to_lcd(newline_pos + 1, len);
         ret += 1; // "\n"
-        
     }
     else  //oneline
     {
         send_command_to_lcd(MOVE_CURSOR_1LINE); //set curcor first line
         ret = write_text_to_lcd(str, count - 1);
     }
-
 
 	kfree(str);
 	return ret;
@@ -164,20 +161,22 @@ static struct i2c_driver lcd_driver =
 
 static int __init lcd_driver_init(void)
 {
+    int ret;
+    
     // Register character device
-    if (alloc_chrdev_region(&device_dev, 1, 1, DEVICE_NAME)) 
+    if ((ret = alloc_chrdev_region(&device_dev, 1, 1, DEVICE_NAME)) < 0) 
     {
         printk(KERN_ALERT "alloc_chrdev_region failed\n");
-        return -1;
+        return ret;
     }
 
     cdev_init(&device_cdev, &fops);
     device_cdev.owner = THIS_MODULE;
 
-    if (cdev_add(&device_cdev, device_dev, 1)) 
+    if ((ret = cdev_add(&device_cdev, device_dev, 1)) < 0) 
     {
         unregister_chrdev_region(device_dev, 1);
-        return -1;
+        return ret;
     }
 
     if ((device_class = class_create(DEVICE_NAME)) == NULL) 
@@ -196,14 +195,14 @@ static int __init lcd_driver_init(void)
     }
 
     // Register I2C driver
-    if (i2c_add_driver(&lcd_driver)) 
+    if ((ret = i2c_add_driver(&lcd_driver) < 0)) 
     {
         device_destroy(device_class, device_dev);
         class_destroy(device_class);
         cdev_del(&device_cdev);
         unregister_chrdev_region(device_dev, 1);
         printk(KERN_INFO "No i2c driver");
-        return -1;
+        return ret;
     }
 
     printk(KERN_INFO "Successfully Load LCD Device Driver: Major = %d, Minor = %d\n", MAJOR(device_dev), MINOR(device_dev));

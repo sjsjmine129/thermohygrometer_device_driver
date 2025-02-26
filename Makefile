@@ -15,6 +15,7 @@ else
 all:
 	@echo "kernel release: $(KERNELRELEASE)"
 	$(MAKE) -C $(KERNELRELEASE) M=$(PWD) modules
+	# rm -f *.o *.mod *.symvers *.order *.mod.c *o.cmd *.mod.* .*.cmd
 
 clean:
 	$(MAKE) -C $(KERNELRELEASE) M=$(PWD) clean

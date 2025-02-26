@@ -18,7 +18,7 @@ int init_client(struct i2c_client *init_client)
 // set sensor mode
 int set_sensor_mode(enum sensor_modes mode)
 {
-    if(mode < 0 || mode > 2 )
+    if(!(mode == GET_BOTH || mode == GET_TEMPERATURE || mode == GET_HUMIDITY))
     {
         printk(KERN_ALERT "wrong mode code!\n");
         return -1;
@@ -44,7 +44,7 @@ int send_command_to_sensor(uint16_t command_code)
     return 0;
 }
 
-void extract_temp_humid_data(int32_t* temperature, int32_t* temperature_decimal, int32_t* humidity, int32_t* humidity_decimal)
+static void extract_temp_humid_data(int32_t* temperature, int32_t* temperature_decimal, int32_t* humidity, int32_t* humidity_decimal)
 {
     int32_t tmp;
     if(temperature && temperature_decimal)

@@ -80,7 +80,7 @@ int write_text_to_lcd(const char *text, int length)
         if(send_data_to_lcd(*text++, LCD_CHR) != 0)
         {
             printk(KERN_ALERT "fail to write text: %s\n", text);
-            return -1;
+            return write_len;
         }
         write_len++;
     }

@@ -15,10 +15,10 @@ static dev_t device_dev;
 static struct class *device_class;
 static struct cdev device_cdev;
 
+int checker =0;
 
 int sensor_driver_open(struct inode *inode, struct file *file)
 {
-
 	unsigned int minor = iminor(inode);
 	struct i2c_client *client;
 	struct i2c_adapter *adap;
@@ -34,7 +34,7 @@ int sensor_driver_open(struct inode *inode, struct file *file)
     if(!client)
     {
         i2c_put_adapter(adap);
-        return -ENODEV;
+        return -ENOMEM;
     }
     snprintf(client->name, I2C_NAME_SIZE, "i2c-dev %d",adap->nr);
 
@@ -74,7 +74,11 @@ int sensor_driver_release(struct inode *inode, struct file *file)
 
 
 static ssize_t sensor_driver_read(struct file *file, char __user *buf, size_t count, loff_t *offset)
-{
+{ checker++;
+        if(checker%3==0){
+
+    return -1;
+}
     int ret;
 
     if(send_command_to_sensor(REQUEST_DATA) != 0)
@@ -176,19 +180,19 @@ static int __init sensor_driver_init(void)
     int ret;
     
     // Register character device
-    if (alloc_chrdev_region(&device_dev, 1, 1, DEVICE_NAME)) 
+    if ((ret = alloc_chrdev_region(&device_dev, 1, 1, DEVICE_NAME)) < 0) 
     {
         printk(KERN_ALERT "alloc_chrdev_region failed\n");
-        return -1;
+        return ret;
     }
 
     cdev_init(&device_cdev, &fops);
     device_cdev.owner = THIS_MODULE;
 
-    if (cdev_add(&device_cdev, device_dev, 1)) 
+    if ((ret = cdev_add(&device_cdev, device_dev, 1)) < 0) 
     {
         unregister_chrdev_region(device_dev, 1);
-        return -1;
+        return ret;
     }
 
     if ((device_class = class_create(DEVICE_NAME)) == NULL) 
@@ -207,14 +211,14 @@ static int __init sensor_driver_init(void)
     }
 
     // Register I2C driver
-    if (i2c_add_driver(&sensor_driver)) 
+    if ((ret = i2c_add_driver(&sensor_driver) < 0)) 
     {
         device_destroy(device_class, device_dev);
         class_destroy(device_class);
         cdev_del(&device_cdev);
         unregister_chrdev_region(device_dev, 1);
         printk(KERN_INFO "No i2c driver");
-        return -1;
+        return ret;
     }
 
     printk(KERN_INFO "Successfully Load SHT31 Device Driver: Major = %d, Minor = %d\n", MAJOR(device_dev), MINOR(device_dev));
