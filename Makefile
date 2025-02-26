@@ -1,13 +1,11 @@
 # Makefile
 
-# Specify the GCC compiler 
-# CC := x86_64-linux-gnu-gcc-13
-
 # called by kernel
 ifneq ($(KERNELRELEASE),)
-# obj-m := hello.o
-# obj-m := alloc_test.o
-	obj-m := ex2.o
+	obj-m := module_sensor_driver.o module_lcd_driver.o
+	
+	module_sensor_driver-objs := sensor_driver.o sensor_operations.o
+	module_lcd_driver-objs := lcd_driver.o lcd_operations.o
 
 # called by make
 else
@@ -15,10 +13,10 @@ else
     PWD := $(shell pwd)
 
 all:
-#	@echo "kernel release: $(KERNELRELEASE)"
+	@echo "kernel release: $(KERNELRELEASE)"
 	$(MAKE) -C $(KERNELRELEASE) M=$(PWD) modules
-# $(MAKE) -C $(KERNELRELEASE) M=$(PWD) CC=$(CC) modules
+
 clean:
 	$(MAKE) -C $(KERNELRELEASE) M=$(PWD) clean
-#$(MAKE) -C $(KERNELRELEASE) M=$(PWD) CC=$(CC) clean
+
 endif
