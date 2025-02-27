@@ -3,10 +3,11 @@
 #define SHT31_I2C_ADDRESS 0x44
 #define DEVICE_NAME "sht31_driver"
 
+
 enum command_codes 
 {
     STOP_MEASUREMENT = 0x3093,
-    START_MEASURMENT = 0x2126,
+    START_MEASURMENT = 0x2737,// 0x2126 0x2236
     SOFT_RESET = 0x30a2,
     REQUEST_DATA = 0xe000,
 };

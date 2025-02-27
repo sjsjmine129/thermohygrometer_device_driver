@@ -2,7 +2,7 @@
 
 #define COMMAND_LENGTH 2
 #define READ_LENGTH 6
-
+#define MEASURE_TIME_GAP 105000
 
 uint8_t i2c_data_buffer[6] = {0};
 struct i2c_client *client;
