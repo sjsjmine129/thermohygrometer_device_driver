@@ -7,7 +7,7 @@
 enum command_codes 
 {
     STOP_MEASUREMENT = 0x3093,
-    START_MEASURMENT = 0x2737,// 0x2126 0x2236
+    START_MEASURMENT = 0x2737,
     SOFT_RESET = 0x30a2,
     REQUEST_DATA = 0xe000,
 };
@@ -93,9 +93,9 @@ static ssize_t sensor_driver_read(struct file *file, char __user *buf, size_t co
     ret = get_data_from_sensor(tmp, count);
 
     //check count and send len
-    if(ret > count)
+    if(ret > count || ret < 0)
     {
-        printk(KERN_INFO "Read fail: buffer is too small\n");
+        printk(KERN_INFO "Read fail\n");
         kfree(tmp);
         return -EIO;
     }

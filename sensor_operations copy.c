@@ -48,15 +48,6 @@ int send_command_to_sensor(uint16_t command_code)
 
 static void extract_temp_humid_data(int32_t* temperature, int32_t* humidity)
 {
-    //remove checksum
-    int i, j;
-    for (i = 0, j = 0; i < READ_LENGTH; i += 2 + 1) 
-    {
-        i2c_data_buffer[j++] = i2c_data_buffer[i];
-        i2c_data_buffer[j++] = i2c_data_buffer[i + 1];
-    }
-
-    // calcualte data
     if(temperature)
     {
         *temperature = ((21875 * (int32_t)((uint16_t)i2c_data_buffer[0] << 8 | (uint16_t)i2c_data_buffer[1])) >> 13) - 45000;
@@ -75,10 +66,51 @@ int get_data_from_sensor(char *tmp_buf, size_t count)
     ktime_t current_time;
     int ret;
 
-    int32_t temp_sum = 0;
-    int32_t humid_sum = 0;
+    int32_t *temp_datas;
+    int32_t *humid_datas;
     int temp_num = 0;
     int humid_num = 0;
+
+    switch (sensor_mode) 
+    {
+        case GET_BOTH:
+            temp_datas = kmalloc(sizeof(int32_t)*11*TIMEOUT_SECOND, GFP_KERNEL);
+            if(!temp_datas)
+            {
+                printk(KERN_ALERT "memory error\n");
+                return -ENOMEM;
+            }
+            humid_datas = kmalloc(sizeof(int32_t)*11*TIMEOUT_SECOND, GFP_KERNEL);
+            if(!humid_datas)
+            {
+                kfree(temp_datas);
+                printk(KERN_ALERT "memory error\n");
+                return -ENOMEM;
+            }
+            break;
+
+        case GET_TEMPERATURE:
+            temp_datas = kmalloc(sizeof(int32_t)*11*TIMEOUT_SECOND, GFP_KERNEL);
+            if(!temp_datas)
+            {
+                printk(KERN_ALERT "memory error\n");
+                return -ENOMEM;
+            }
+            break;
+
+        case GET_HUMIDITY:
+            humid_datas = kmalloc(sizeof(int32_t)*11*TIMEOUT_SECOND, GFP_KERNEL);
+            if(!humid_datas)
+            {
+                printk(KERN_ALERT "memory error\n");
+                return -ENOMEM;
+            }
+            break;
+
+        default:
+            break;
+    }
+
 
     do // read data untile time is over
     {
@@ -86,7 +118,15 @@ int get_data_from_sensor(char *tmp_buf, size_t count)
         if(ret != READ_LENGTH) // new data is not arrived
         {
             current_time = ktime_get();
-            continue; 
+            continue;
+        }
+
+        //remove checksum
+        int i, j;
+        for (i = 0, j = 0; i < ret; i += 2 + 1) 
+        {
+            i2c_data_buffer[j++] = i2c_data_buffer[i];
+            i2c_data_buffer[j++] = i2c_data_buffer[i + 1];
         }
         
         int32_t new_temperature, new_humidity;
@@ -95,24 +135,20 @@ int get_data_from_sensor(char *tmp_buf, size_t count)
             case GET_BOTH:
                 extract_temp_humid_data(&new_temperature, &new_humidity);
                 printk(KERN_ALERT "[read] temperature: %d, humid: %d\n", new_temperature, new_humidity);
-                temp_sum += new_temperature;
-                humid_sum += new_humidity;
-                temp_num++;
-                humid_num++;
+                temp_datas[temp_num++] = new_temperature;
+                humid_datas[humid_num++] = new_humidity;
                 break;
     
             case GET_TEMPERATURE:
                 extract_temp_humid_data(&new_temperature, NULL);
                 printk(KERN_ALERT "[read] temperature: %d\n", new_temperature);
-                temp_sum += new_temperature;
-                temp_num++;
+                temp_datas[temp_num++] = new_temperature;
                 break;
     
             case GET_HUMIDITY:
                 extract_temp_humid_data(NULL, &new_humidity);
                 printk(KERN_ALERT "[read] humid: %d\n", new_humidity);
-                humid_sum += new_humidity;
-                humid_num++;
+                humid_datas[humid_num++] = new_humidity;
                 break;
     
             default:
@@ -126,34 +162,41 @@ int get_data_from_sensor(char *tmp_buf, size_t count)
 
 
 
-    // calculate data average and make text
+    // cal valid data average and make text
     switch (sensor_mode) 
     {
         case GET_BOTH:
-            temp_sum = temp_sum / temp_num;
-            humid_sum = humid_sum / humid_num;
 
-            ret = snprintf(tmp_buf, count,"%d.%03d C\n%d.%03dRH%%", temp_sum/1000, temp_sum%1000, humid_sum/1000, humid_sum%1000);
-            tmp_buf[6] = 0xDF; // add '°'  
+            ret = snprintf(tmp_buf, count,"%d.%03d C\n%d.%03dRH%%", temperature, temperature_decimal, humidity, humidity_decimal);
+            tmp_buf[6] = 0xDF;
             return ret;
 
         case GET_TEMPERATURE:
-            temp_sum = temp_sum / temp_num;
 
-            ret = snprintf(tmp_buf, count, "%d.%03d C", temp_sum/1000, temp_sum%1000);
-            tmp_buf[6] = 0xDF; // add '°' 
+            ret = snprintf(tmp_buf, count, "%d.%03d C", temperature, temperature_decimal);
+            tmp_buf[6] = 0xDF;
             return ret;
 
         case GET_HUMIDITY:
-            humid_sum = humid_sum / humid_num;
 
-            ret = snprintf(tmp_buf, count, "%d.%03dRH%%", humid_sum/1000, humid_sum%1000);
+            ret = snprintf(tmp_buf, count, "%d.%03dRH%%", humidity, humidity_decimal);
             return ret;
 
         default:
             return -1;
     }
 
+
+    if(temp_datas)
+    {
+        kfree(temp_datas);
+    }
+    if(humid_datas)
+    {
+        kfree(humid_datas);
+    }
+
+    return count;
 }
 
 MODULE_AUTHOR("seungju.eum");
