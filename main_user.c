@@ -14,11 +14,12 @@ enum sensor_data_types
 enum sensor_data_types sensor_data_type = -1;
 int repeat = 1;
 int adder = -1;
+int time_gap = -1;
 
 //error when arg input is wrong
 void arg_error_print_information(void)
 {
-    printf("[temp_humid_checker] arg error\n -t : get temperature\n -h : get humidity\n -n [times] : how many times to get data (default '1')\n -n inf : get data continuously\n");
+    printf("[temp_humid_checker] arg error\n -t : get temperature\n -h : get humidity\n -n [times] : how many times to get data (default '1')\n -n inf : get data continuously\n -g [second] : time gap between measurement (default '1s')\n");
     exit(EXIT_FAILURE);
 }
 
@@ -105,6 +106,20 @@ void check_args(int argc, char* argv[])
                 }
             }
         }
+        else if(strcmp(argv[i],"-g") == 0)
+        {
+            if(i+1 >= argc || time_gap != -1) // no data after '-g' or second '-g'
+            {
+                arg_error_print_information();
+            }
+            i++;
+
+            time_gap = atoi(argv[i]);
+            if(time_gap == 0)
+            {
+                arg_error_print_information();
+            }
+        }
         else
         {
             arg_error_print_information();
@@ -167,12 +182,14 @@ int main(int argc, char* argv[])
             exit(EXIT_FAILURE);
         }
 
-
-        ret = ioctl(sht31_dev, 0x0011, 5);
-        if(ret != 0)
+        if(time_gap != -1)
         {
-            driver_error(ret);
-            exit(EXIT_FAILURE);
+            ret = ioctl(sht31_dev, 0x0011, time_gap);
+            if(ret != 0)
+            {
+                driver_error(ret);
+                exit(EXIT_FAILURE);
+            }
         }
 
         printf("Connect to SHT31 & LCD1602 success\n");
