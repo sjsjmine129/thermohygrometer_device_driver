@@ -80,6 +80,7 @@ static void extract_temp_humid_data(int32_t* temperature, int32_t* humidity)
     }
 }
 
+
 int get_data_from_sensor(char *tmp_buf, size_t count)
 {
     ktime_t start_time = ktime_get();

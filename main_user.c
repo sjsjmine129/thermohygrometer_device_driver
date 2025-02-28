@@ -16,6 +16,8 @@ int repeat = 1;
 int adder = -1;
 int time_gap = -1;
 
+
+
 //error when arg input is wrong
 void arg_error_print_information(void)
 {
@@ -33,18 +35,20 @@ void driver_error(int error_ret)
 void print_mode(void)
 {
     printf("Get ");
-    if(sensor_data_type == GET_BOTH)
+
+    switch(sensor_data_type)
     {
-        printf("temperature and humidity ");
+        case GET_BOTH:
+            printf("temperature and humidity ");
+            break;
+        case GET_TEMPERATURE:
+            printf("temperature ");
+            break;
+        case GET_HUMIDITY:
+            printf("humidity ");
+            break;
     }
-    else if(sensor_data_type == GET_TEMPERATURE)
-    {
-        printf("temperature ");
-    }
-    else if(sensor_data_type == GET_HUMIDITY)
-    {
-        printf("humidity ");
-    }
+
     printf("data ");
 
     if(adder == 0)

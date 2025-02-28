@@ -17,6 +17,7 @@ static dev_t device_dev;
 static struct class *device_class;
 static struct cdev device_cdev;
 
+
 int sensor_driver_open(struct inode *inode, struct file *file)
 {
 	unsigned int minor = iminor(inode);
@@ -44,6 +45,9 @@ int sensor_driver_open(struct inode *inode, struct file *file)
     client->addr = 0x44; //set sensor i2c address
 
     init_client(client);
+
+    set_sensor_data_type(GET_BOTH); 
+    set_measure_time(1);
 
     send_command_to_sensor(STOP_MEASUREMENT);
     usleep_range(1000, 1000);
@@ -115,8 +119,6 @@ static ssize_t sensor_driver_read(struct file *file, char __user *buf, size_t co
 static long sensor_driver_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
     int ret;
-
-    printk(KERN_INFO "iotcl\n");
 
     switch (cmd) 
     {
