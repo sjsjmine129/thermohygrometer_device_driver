@@ -11,7 +11,7 @@
 #include <linux/delay.h> 
 #include <linux/string.h>
 
-enum sensor_modes 
+enum sensor_data_types 
 {
     GET_BOTH,
 	GET_TEMPERATURE,
@@ -21,7 +21,9 @@ enum sensor_modes
 
 int init_client(struct i2c_client *init_client);
 
-int set_sensor_mode(enum sensor_modes mode);
+int set_sensor_data_type(enum sensor_data_types mode);
+
+int set_measure_time(int new_time);
 
 int send_command_to_sensor(uint16_t command_code);
 

@@ -1,6 +1,5 @@
 #include "sensor_operations.h"
 
-#define SHT31_I2C_ADDRESS 0x44
 #define DEVICE_NAME "sht31_driver"
 
 
@@ -11,6 +10,8 @@ enum command_codes
     SOFT_RESET = 0x30a2,
     REQUEST_DATA = 0xe000,
 };
+
+
 
 static dev_t device_dev;
 static struct class *device_class;
@@ -40,7 +41,7 @@ int sensor_driver_open(struct inode *inode, struct file *file)
 
     client->adapter = adap;
     file->private_data = client;
-    client->addr = SHT31_I2C_ADDRESS;
+    client->addr = 0x44; //set sensor i2c address
 
     init_client(client);
 
@@ -60,7 +61,6 @@ int sensor_driver_release(struct inode *inode, struct file *file)
 {
     struct i2c_client *client = file->private_data;
 
-    set_sensor_mode(GET_BOTH);
     send_command_to_sensor(STOP_MEASUREMENT);
 
     i2c_put_adapter(client->adapter);
@@ -114,13 +114,24 @@ static ssize_t sensor_driver_read(struct file *file, char __user *buf, size_t co
 
 static long sensor_driver_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
-	if(cmd != SHT31_I2C_ADDRESS)
-    {
-        printk(KERN_ALERT "cmd is not correct sensor address\n");
-        return -ENXIO;
-    }
+    int ret;
 
-    int ret = set_sensor_mode(arg);
+    printk(KERN_INFO "iotcl\n");
+
+    switch (cmd) 
+    {
+        case 0x0010: //sensor mode
+            ret = set_sensor_data_type(arg); 
+            break;
+
+        case 0x0011: // sensing time gap
+            ret = set_measure_time(arg);
+            break;
+
+        default:
+            printk(KERN_ALERT "cmd is not correct\n");
+            ret -ENXIO;
+    }
 
     return ret;
 }

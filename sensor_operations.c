@@ -2,13 +2,12 @@
 
 #define COMMAND_LENGTH 2
 #define READ_LENGTH 6
-#define MEASURE_TIME_GAP 105000
-#define WINDOW_SIZE 5
-#define TIMEOUT_SECOND 1
+
 
 uint8_t i2c_data_buffer[6] = {0};
 struct i2c_client *client;
-enum sensor_modes sensor_mode = GET_BOTH;
+enum sensor_data_types sensor_data_type = GET_BOTH;
+int timeout_second = 1;
 
 
 int init_client(struct i2c_client *init_client)
@@ -17,15 +16,28 @@ int init_client(struct i2c_client *init_client)
     return 0;
 }
 
-// set sensor mode
-int set_sensor_mode(enum sensor_modes mode)
+// set sensor data_type
+int set_sensor_data_type(enum sensor_data_types new_data_type)
 {
-    if(!(mode == GET_BOTH || mode == GET_TEMPERATURE || mode == GET_HUMIDITY))
+    if(!(new_data_type == GET_BOTH || new_data_type == GET_TEMPERATURE || new_data_type == GET_HUMIDITY))
     {
-        printk(KERN_ALERT "wrong mode code!\n");
+        printk(KERN_ALERT "wrong datatype code!\n");
         return -1;
     }
-    sensor_mode = mode;
+    sensor_data_type = new_data_type;
+    return 0;
+}
+
+// set timeout_second
+int set_measure_time(int new_time)
+{
+    if(new_time <= 0 || new_time > 60 )
+    {
+        printk(KERN_ALERT "wrong measure time gap\n");
+        return -1;
+    }
+
+    timeout_second = new_time;
     return 0;
 }
 
@@ -71,7 +83,7 @@ static void extract_temp_humid_data(int32_t* temperature, int32_t* humidity)
 int get_data_from_sensor(char *tmp_buf, size_t count)
 {
     ktime_t start_time = ktime_get();
-    ktime_t timeout_time = ktime_add(start_time, ktime_set(TIMEOUT_SECOND, 0));
+    ktime_t timeout_time = ktime_add(start_time, ktime_set(timeout_second, 0));
     ktime_t current_time;
     int ret;
 
@@ -90,7 +102,7 @@ int get_data_from_sensor(char *tmp_buf, size_t count)
         }
         
         int32_t new_temperature, new_humidity;
-        switch (sensor_mode) 
+        switch (sensor_data_type) 
         {
             case GET_BOTH:
                 extract_temp_humid_data(&new_temperature, &new_humidity);
@@ -127,7 +139,7 @@ int get_data_from_sensor(char *tmp_buf, size_t count)
 
 
     // calculate data average and make text
-    switch (sensor_mode) 
+    switch (sensor_data_type) 
     {
         case GET_BOTH:
             temp_sum = temp_sum / temp_num;

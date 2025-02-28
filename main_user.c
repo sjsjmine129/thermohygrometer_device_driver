@@ -4,14 +4,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-enum sensor_modes
+enum sensor_data_types
 {
     GET_BOTH,
 	GET_TEMPERATURE,
     GET_HUMIDITY,
 };
 
-enum sensor_modes sensor_mode = -1;
+enum sensor_data_types sensor_data_type = -1;
 int repeat = 1;
 int adder = -1;
 
@@ -32,15 +32,15 @@ void driver_error(int error_ret)
 void print_mode(void)
 {
     printf("Get ");
-    if(sensor_mode == GET_BOTH)
+    if(sensor_data_type == GET_BOTH)
     {
         printf("temperature and humidity ");
     }
-    else if(sensor_mode == GET_TEMPERATURE)
+    else if(sensor_data_type == GET_TEMPERATURE)
     {
         printf("temperature ");
     }
-    else if(sensor_mode == GET_HUMIDITY)
+    else if(sensor_data_type == GET_HUMIDITY)
     {
         printf("humidity ");
     }
@@ -64,24 +64,24 @@ void check_args(int argc, char* argv[])
     {
         if(strcmp(argv[i],"-t") == 0)
         {
-            if(sensor_mode == -1)
+            if(sensor_data_type == -1)
             {
-                sensor_mode = GET_TEMPERATURE;
+                sensor_data_type = GET_TEMPERATURE;
             }
-            else if(sensor_mode == GET_HUMIDITY)
+            else if(sensor_data_type == GET_HUMIDITY)
             {
-                sensor_mode = GET_BOTH;
+                sensor_data_type = GET_BOTH;
             }
         }
         else if(strcmp(argv[i],"-h") == 0)
         {
-            if(sensor_mode == -1)
+            if(sensor_data_type == -1)
             {
-                sensor_mode = GET_HUMIDITY;
+                sensor_data_type = GET_HUMIDITY;
             }
-            else if(sensor_mode == GET_TEMPERATURE)
+            else if(sensor_data_type == GET_TEMPERATURE)
             {
-                sensor_mode = GET_BOTH;
+                sensor_data_type = GET_BOTH;
             }
         }
         else if(strcmp(argv[i],"-n") == 0)
@@ -111,7 +111,7 @@ void check_args(int argc, char* argv[])
         }
     }
 
-    if(sensor_mode == -1)
+    if(sensor_data_type == -1)
     {
         arg_error_print_information();
     }
@@ -160,7 +160,15 @@ int main(int argc, char* argv[])
     }
     else // sensor driver open success
     {
-        ret = ioctl(sht31_dev, 0x44, sensor_mode);
+        ret = ioctl(sht31_dev, 0x0010, sensor_data_type); //change sensor mode
+        if(ret != 0)
+        {
+            driver_error(ret);
+            exit(EXIT_FAILURE);
+        }
+
+
+        ret = ioctl(sht31_dev, 0x0011, 5);
         if(ret != 0)
         {
             driver_error(ret);
@@ -190,7 +198,6 @@ int main(int argc, char* argv[])
                 continue;
             }
 
-            // sleep(1);
         }
     }
 

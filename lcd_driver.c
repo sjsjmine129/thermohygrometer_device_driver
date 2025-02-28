@@ -43,7 +43,7 @@ int lcd_driver_open(struct inode *inode, struct file *file)
 
     client->adapter = adap;
     file->private_data = client;
-    client->addr = 0x27; //set sensor i2c address
+    client->addr = 0x27; //set lcd i2c address
 
     init_client(client);
 
