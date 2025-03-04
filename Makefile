@@ -2,10 +2,7 @@
 
 # called by kernel
 ifneq ($(KERNELRELEASE),)
-	obj-m := module_sensor_driver.o module_lcd_driver.o
-	
-	module_sensor_driver-objs := sensor_driver.o sensor_operations.o
-	module_lcd_driver-objs := lcd_driver.o lcd_operations.o
+	obj-m := sensor_driver.o lcd_driver.o
 
 # called by make
 else

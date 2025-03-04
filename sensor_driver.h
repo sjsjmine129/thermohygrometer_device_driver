@@ -11,6 +11,11 @@
 #include <linux/delay.h> 
 #include <linux/string.h>
 
+#define DEVICE_NAME "sht31_driver"
+#define COMMAND_LENGTH 2
+#define READ_LENGTH 6
+
+
 enum sensor_data_types 
 {
     GET_BOTH,
@@ -18,13 +23,10 @@ enum sensor_data_types
     GET_HUMIDITY,
 };
 
-
-int init_client(struct i2c_client *init_client);
-
-int set_sensor_data_type(enum sensor_data_types mode);
-
-int set_measure_time(int new_time);
-
-int send_command_to_sensor(uint16_t command_code);
-
-int get_data_from_sensor(char *tmp_buf, size_t count);
+enum command_codes 
+{
+    STOP_MEASUREMENT = 0x3093,
+    START_MEASURMENT = 0x2737,
+    SOFT_RESET = 0x30a2,
+    REQUEST_DATA = 0xe000,
+};
