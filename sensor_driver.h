@@ -32,3 +32,15 @@ enum command_codes
     SOFT_RESET = 0x30a2,
     REQUEST_DATA = 0xe000,
 };
+
+static int sensor_driver_open(struct inode *inode, struct file *file);
+
+static int sensor_driver_release(struct inode *inode, struct file *file);
+
+static ssize_t sensor_driver_read(struct file *file, char __user *buf, size_t count, loff_t *offset);
+
+static long sensor_driver_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+
+static int sensor_probe(struct i2c_client *client);
+
+static void sensor_remove(struct i2c_client *client);

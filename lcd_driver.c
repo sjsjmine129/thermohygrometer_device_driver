@@ -6,6 +6,31 @@ static struct cdev device_cdev;
 
 uint8_t i2c_data_buffer[2] = {0};
 
+static struct file_operations fops = 
+{
+    .owner = THIS_MODULE,
+    .open = lcd_driver_open,
+    .release = lcd_driver_release,
+    .write = lcd_driver_write
+};
+
+static const struct i2c_device_id lcd_id[] = 
+{
+    {"lcd1602", 0},
+    {}
+};
+
+static struct i2c_driver lcd_driver = 
+{
+    .driver = 
+    {
+        .name = "lcd1602_driver",
+    },
+    .probe = lcd_probe,
+    .remove = lcd_remove,
+    .id_table = lcd_id,
+};
+
 // announce send the data or command to lcd
 int lcdToggleEnable(int bits, struct i2c_client *client) 
 {
@@ -169,14 +194,6 @@ static ssize_t lcd_driver_write(struct file *file, const char __user *buf, size_
 	return ret;
 }
 
-static struct file_operations fops = 
-{
-    .owner = THIS_MODULE,
-    .open = lcd_driver_open,
-    .release = lcd_driver_release,
-    .write = lcd_driver_write
-};
-
 static int lcd_probe(struct i2c_client *client)
 {
     printk(KERN_INFO "LCD 1602 detected\n");
@@ -189,24 +206,7 @@ static void lcd_remove(struct i2c_client *client)
     return;
 }
 
-static const struct i2c_device_id lcd_id[] = 
-{
-    {"lcd1602", 0},
-    {}
-};
-
 MODULE_DEVICE_TABLE(i2c, lcd_id);
-
-static struct i2c_driver lcd_driver = 
-{
-    .driver = 
-    {
-        .name = "lcd1602_driver",
-    },
-    .probe = lcd_probe,
-    .remove = lcd_remove,
-    .id_table = lcd_id,
-};
 
 static int __init lcd_driver_init(void)
 {

@@ -8,6 +8,32 @@ uint8_t i2c_data_buffer[6] = {0};
 enum sensor_data_types sensor_data_type = GET_BOTH;
 int timeout_second = 1;
 
+static struct file_operations fops = 
+{
+    .owner = THIS_MODULE,
+    .open = sensor_driver_open,
+    .release = sensor_driver_release,
+    .read = sensor_driver_read,
+    .unlocked_ioctl = sensor_driver_ioctl,
+};
+
+static const struct i2c_device_id sensor_id[] = 
+{
+    {"sht31", 0},
+    {}
+};
+
+static struct i2c_driver sensor_driver = 
+{
+    .driver = 
+    {
+        .name = "sht31_driver",
+    },
+    .probe = sensor_probe,
+    .remove = sensor_remove,
+    .id_table = sensor_id,
+};
+
 // set sensor data_type
 int set_sensor_data_type(enum sensor_data_types new_data_type)
 {
@@ -156,7 +182,7 @@ int get_data_from_sensor(char *tmp_buf, size_t count, struct i2c_client *client)
 }
 
 
-int sensor_driver_open(struct inode *inode, struct file *file)
+static int sensor_driver_open(struct inode *inode, struct file *file)
 {
 	unsigned int minor = iminor(inode);
 	struct i2c_client *client = NULL;
@@ -196,7 +222,7 @@ int sensor_driver_open(struct inode *inode, struct file *file)
 }
 
 // release function for device driver
-int sensor_driver_release(struct inode *inode, struct file *file)
+static int sensor_driver_release(struct inode *inode, struct file *file)
 {
     struct i2c_client *client = file->private_data;
 
@@ -273,15 +299,6 @@ static long sensor_driver_ioctl(struct file *file, unsigned int cmd, unsigned lo
     return ret;
 }
 
-static struct file_operations fops = 
-{
-    .owner = THIS_MODULE,
-    .open = sensor_driver_open,
-    .release = sensor_driver_release,
-    .read = sensor_driver_read,
-    .unlocked_ioctl = sensor_driver_ioctl,
-};
-
 static int sensor_probe(struct i2c_client *client)
 {
     printk(KERN_INFO "SHT31 sensor detected\n");
@@ -294,24 +311,9 @@ static void sensor_remove(struct i2c_client *client)
     return;
 }
 
-static const struct i2c_device_id sensor_id[] = 
-{
-    {"sht31", 0},
-    {}
-};
 
 MODULE_DEVICE_TABLE(i2c, sensor_id);
 
-static struct i2c_driver sensor_driver = 
-{
-    .driver = 
-    {
-        .name = "sht31_driver",
-    },
-    .probe = sensor_probe,
-    .remove = sensor_remove,
-    .id_table = sensor_id,
-};
 
 static int __init sensor_driver_init(void)
 {

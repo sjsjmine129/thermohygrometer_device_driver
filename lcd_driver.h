@@ -32,3 +32,13 @@ enum command_codes
     MOVE_CURSOR_1LINE = 0x80,
     MOVE_CURSOR_2LINE = 0xC0,
 };
+
+static int lcd_driver_open(struct inode *inode, struct file *file);
+
+static int lcd_driver_release(struct inode *inode, struct file *file);
+
+static ssize_t lcd_driver_write(struct file *file, const char __user *buf, size_t count, loff_t *offset);
+
+static int lcd_probe(struct i2c_client *client);
+
+static void lcd_remove(struct i2c_client *client);
