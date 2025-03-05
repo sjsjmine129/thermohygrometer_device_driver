@@ -2,10 +2,19 @@
 
 int main()
 {
-    measure_air_condition(0, 3, 1);
+    int ret;
+    ret = measure_air_condition(GET_TEMPERATURE_HUMIDITY, 3, 1);
+    if(ret != TH_SUCCESS){
+        return TH_FAIL;
+    }
 
     printf("Press enter to end program\n");
     getchar();
 
-    clear_screen();
+    ret = clear_screen();
+    if(ret != TH_SUCCESS){
+        return TH_FAIL;
+    }
+
+    return TH_SUCCESS;
 }
