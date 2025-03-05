@@ -1,9 +1,7 @@
 #include "thermohygrometer.h"
 
-
 int sht31_dev = -1;
 int lcd1602_dev = -1;
-
 
 int measure_air_condition(enum sensor_data_types sensor_data_type, int repeat, int time_gap)
 {    
@@ -12,7 +10,7 @@ int measure_air_condition(enum sensor_data_types sensor_data_type, int repeat, i
         ||(repeat <= 1)
         ||(time_gap < 1 || time_gap > 60))
     {
-        return -EROOR_WRONG_PARAMS;
+        return TH_FAIL_WRONG_PARAMS;
     }
 
     char buff[100];
@@ -21,7 +19,7 @@ int measure_air_condition(enum sensor_data_types sensor_data_type, int repeat, i
     lcd1602_dev = open("/dev/lcd1602_driver", O_WRONLY);
     if(lcd1602_dev <= 0)
     {
-        return -EROOR_OPEN_LCD_DEVICE;
+        return TH_FAIL_OPEN_LCD_DEVICE;
     }
 
     sht31_dev = open("/dev/sht31_driver", O_RDONLY);
@@ -29,25 +27,23 @@ int measure_air_condition(enum sensor_data_types sensor_data_type, int repeat, i
     {
         close(lcd1602_dev);
         lcd1602_dev = -1;
-        return -EROOR_OPEN_SENSOR_DEVICE;
+        return TH_FAIL_OPEN_SENSOR_DEVICE;
     }
 
-    
     //set data type & time gap of measure temperature or humidity
     if(ioctl(sht31_dev, 0x0010, sensor_data_type))
     {
         close(sht31_dev);
         close(lcd1602_dev);
-        return -EROOR_SETTING_DEVICE;
+        return TH_FAIL_SETTING_DEVICE;
     }
     if(ioctl(sht31_dev, 0x0011, time_gap))
     {
         close(sht31_dev);
         close(lcd1602_dev);
-        return -EROOR_SETTING_DEVICE;
+        return TH_FAIL_SETTING_DEVICE;
     }
     
-
     //measure loop
     for(int i = 0; i < repeat; i += 1)
     {
@@ -69,7 +65,7 @@ int measure_air_condition(enum sensor_data_types sensor_data_type, int repeat, i
 
     close(sht31_dev);
     close(lcd1602_dev);
-    return 0;
+    return TH_SUCCESS;
 }
 
 
@@ -79,11 +75,11 @@ int clear_screen()
     lcd1602_dev = open("/dev/lcd1602_driver", O_WRONLY);
     if(lcd1602_dev <= 0)
     {
-        return -EROOR_OPEN_LCD_DEVICE;
+        return TH_FAIL_OPEN_LCD_DEVICE;
     }
 
     close(lcd1602_dev);
-    return 0;
+    return TH_SUCCESS;
 }
 
 
