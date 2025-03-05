@@ -6,7 +6,6 @@ static struct cdev device_cdev;
 
 uint8_t i2c_data_buffer[2] = {0};
 
-
 // announce send the data or command to lcd
 int lcdToggleEnable(int bits, struct i2c_client *client) 
 {
@@ -50,7 +49,6 @@ int send_data_to_lcd(uint16_t data, uint16_t data_type, struct i2c_client *clien
     return 0;
 }
 
-
 int send_command_to_lcd(uint16_t command, struct i2c_client *client)
 {
     if(send_data_to_lcd(command, LCD_CMD, client))
@@ -61,7 +59,6 @@ int send_command_to_lcd(uint16_t command, struct i2c_client *client)
 
     return 0;
 }
-
 
 int write_text_to_lcd(const char *text, int length, struct i2c_client *client) 
 {
@@ -79,8 +76,6 @@ int write_text_to_lcd(const char *text, int length, struct i2c_client *client)
 
     return write_len;
 }
-
-
 
 int lcd_driver_open(struct inode *inode, struct file *file)
 {
@@ -103,11 +98,9 @@ int lcd_driver_open(struct inode *inode, struct file *file)
     }
     snprintf(client->name, I2C_NAME_SIZE, "i2c-dev %d", adap->nr);
 
-
     client->adapter = adap;
     file->private_data = client;
     client->addr = 0x27; //set lcd i2c address
-
 
     send_command_to_lcd(SET_8BIT_MODE, client);
     send_command_to_lcd(SET_4BIT_MODE, client);
@@ -120,7 +113,6 @@ int lcd_driver_open(struct inode *inode, struct file *file)
 	printk(KERN_ALERT "Open lcd device %u: i2c-dev %d\n",minor, adap->nr);
 	return 0;
 }
-
 
 // release function for device driver
 int lcd_driver_release(struct inode *inode, struct file *file)
@@ -177,8 +169,6 @@ static ssize_t lcd_driver_write(struct file *file, const char __user *buf, size_
 	return ret;
 }
 
-
-
 static struct file_operations fops = 
 {
     .owner = THIS_MODULE,
@@ -186,7 +176,6 @@ static struct file_operations fops =
     .release = lcd_driver_release,
     .write = lcd_driver_write
 };
-
 
 static int lcd_probe(struct i2c_client *client)
 {
@@ -218,7 +207,6 @@ static struct i2c_driver lcd_driver =
     .remove = lcd_remove,
     .id_table = lcd_id,
 };
-
 
 static int __init lcd_driver_init(void)
 {
@@ -269,7 +257,6 @@ static int __init lcd_driver_init(void)
     printk(KERN_INFO "Successfully Load LCD Device Driver: Major = %d, Minor = %d\n", MAJOR(device_dev), MINOR(device_dev));
     return 0;
 }
-
 
 static void __exit lcd_driver_exit(void)
 {
