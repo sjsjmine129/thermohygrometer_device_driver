@@ -1,15 +1,12 @@
 #include "sensor_driver.h"
 
-
 static dev_t device_dev;
 static struct class *device_class;
 static struct cdev device_cdev;
 
-
 uint8_t i2c_data_buffer[6] = {0};
 enum sensor_data_types sensor_data_type = GET_BOTH;
 int timeout_second = 1;
-
 
 // set sensor data_type
 int set_sensor_data_type(enum sensor_data_types new_data_type)
@@ -75,7 +72,6 @@ static void extract_temp_humid_data(int32_t* temperature, int32_t* humidity)
     }
 }
 
-
 int get_data_from_sensor(char *tmp_buf, size_t count, struct i2c_client *client)
 {
     ktime_t start_time = ktime_get();
@@ -126,13 +122,9 @@ int get_data_from_sensor(char *tmp_buf, size_t count, struct i2c_client *client)
             default:
                 break;
         }
-    
+
         current_time = ktime_get();
-
-
     } while(ktime_compare(current_time, timeout_time) < 0);
-
-
 
     // calculate data average and make text
     switch (sensor_data_type) 
@@ -161,7 +153,6 @@ int get_data_from_sensor(char *tmp_buf, size_t count, struct i2c_client *client)
         default:
             return -1;
     }
-
 }
 
 
@@ -185,7 +176,6 @@ int sensor_driver_open(struct inode *inode, struct file *file)
         return -ENOMEM;
     }
     snprintf(client->name, I2C_NAME_SIZE, "i2c-dev %d",adap->nr);
-
 
     client->adapter = adap;
     file->private_data = client;
@@ -283,8 +273,6 @@ static long sensor_driver_ioctl(struct file *file, unsigned int cmd, unsigned lo
     return ret;
 }
 
-
-
 static struct file_operations fops = 
 {
     .owner = THIS_MODULE,
@@ -293,8 +281,6 @@ static struct file_operations fops =
     .read = sensor_driver_read,
     .unlocked_ioctl = sensor_driver_ioctl,
 };
-
-
 
 static int sensor_probe(struct i2c_client *client)
 {
@@ -326,7 +312,6 @@ static struct i2c_driver sensor_driver =
     .remove = sensor_remove,
     .id_table = sensor_id,
 };
-
 
 static int __init sensor_driver_init(void)
 {
@@ -377,7 +362,6 @@ static int __init sensor_driver_init(void)
     printk(KERN_INFO "Successfully Load SHT31 Device Driver: Major = %d, Minor = %d\n", MAJOR(device_dev), MINOR(device_dev));
     return 0;
 }
-
 
 static void __exit sensor_driver_exit(void)
 {
