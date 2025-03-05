@@ -2,7 +2,7 @@
 
 int main()
 {
-    int ret;
+    int ret = TH_FAIL;
     ret = measure_air_condition(GET_TEMPERATURE_HUMIDITY, 3, 1);
     if(ret != TH_SUCCESS){
         return TH_FAIL;

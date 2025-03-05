@@ -18,6 +18,9 @@
 #define LCD_BACKLIGHT 8 
 #define ENABLE 4
 
+#define DRIVER_SUCCUSS 0
+#define DRIVER_FAIL -1
+
 enum command_codes
 {
     SET_CURSOR_MOVERIGHT = 0x06,

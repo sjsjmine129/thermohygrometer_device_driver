@@ -12,18 +12,18 @@ int lcdToggleEnable(int bits, struct i2c_client *client)
     char data = bits | ENABLE; // make enable bit high
     if(i2c_master_send(client, &data, SEND_LENGTH) != 1)
     {
-        return -1;
+        return DRIVER_FAIL;
     }
     usleep_range(500, 500);
 
     data = bits & ~ENABLE; // set enable bit low
     if(i2c_master_send(client, &data, SEND_LENGTH) != 1)
     {
-        return -1;
+        return DRIVER_FAIL;
     }
     usleep_range(500, 500);
 
-    return 0;
+    return DRIVER_SUCCUSS;
 }
 
 int send_data_to_lcd(uint16_t data, uint16_t data_type, struct i2c_client *client)
@@ -37,27 +37,27 @@ int send_data_to_lcd(uint16_t data, uint16_t data_type, struct i2c_client *clien
     {
         if(i2c_master_send(client, &i2c_data_buffer[i], SEND_LENGTH) != 1)
         {
-            return -1;
+            return DRIVER_FAIL;
         }
 
-        if(lcdToggleEnable(i2c_data_buffer[i], client))
+        if(lcdToggleEnable(i2c_data_buffer[i], client) != DRIVER_SUCCUSS)
         {
-            return -1;
+            return DRIVER_FAIL;
         }
     }
 
-    return 0;
+    return DRIVER_SUCCUSS;
 }
 
 int send_command_to_lcd(uint16_t command, struct i2c_client *client)
 {
-    if(send_data_to_lcd(command, LCD_CMD, client))
+    if(send_data_to_lcd(command, LCD_CMD, client) != DRIVER_SUCCUSS)
     {
         printk(KERN_ALERT "fail to send command: %x\n", command);
-        return -1;
+        return DRIVER_FAIL;
     }
 
-    return 0;
+    return DRIVER_SUCCUSS;
 }
 
 int write_text_to_lcd(const char *text, int length, struct i2c_client *client) 
@@ -80,8 +80,8 @@ int write_text_to_lcd(const char *text, int length, struct i2c_client *client)
 int lcd_driver_open(struct inode *inode, struct file *file)
 {
 	unsigned int minor = iminor(inode);
-	struct i2c_client *client;
-	struct i2c_adapter *adap;
+	struct i2c_client *client = NULL;
+	struct i2c_adapter *adap = NULL;
 
 	adap = i2c_get_adapter(minor);
     if(!adap)
@@ -111,7 +111,7 @@ int lcd_driver_open(struct inode *inode, struct file *file)
     usleep_range(2000, 2100);
 
 	printk(KERN_ALERT "Open lcd device %u: i2c-dev %d\n",minor, adap->nr);
-	return 0;
+	return DRIVER_SUCCUSS;
 }
 
 // release function for device driver
@@ -124,7 +124,7 @@ int lcd_driver_release(struct inode *inode, struct file *file)
     file->private_data = NULL;
 
 	printk(KERN_ALERT "Release lcd device\n");
-	return 0;
+	return DRIVER_SUCCUSS;
 }
 
 static ssize_t lcd_driver_write(struct file *file, const char __user *buf, size_t count, loff_t *offset)
@@ -180,7 +180,7 @@ static struct file_operations fops =
 static int lcd_probe(struct i2c_client *client)
 {
     printk(KERN_INFO "LCD 1602 detected\n");
-    return 0;
+    return DRIVER_SUCCUSS;
 }
 
 static void lcd_remove(struct i2c_client *client)
@@ -210,7 +210,7 @@ static struct i2c_driver lcd_driver =
 
 static int __init lcd_driver_init(void)
 {
-    int ret;
+    int ret = -1;
     
     // Register character device
     if ((ret = alloc_chrdev_region(&device_dev, 1, 1, DEVICE_NAME)) < 0) 
@@ -232,7 +232,7 @@ static int __init lcd_driver_init(void)
     {
         cdev_del(&device_cdev);
         unregister_chrdev_region(device_dev, 1);
-        return -1;
+        return DRIVER_FAIL;
     }
 
     if (device_create(device_class, NULL, device_dev, NULL, DEVICE_NAME) == NULL) 
@@ -240,7 +240,7 @@ static int __init lcd_driver_init(void)
         class_destroy(device_class);
         cdev_del(&device_cdev);
         unregister_chrdev_region(device_dev, 1);
-        return -1;
+        return DRIVER_FAIL;
     }
 
     // Register I2C driver
@@ -255,7 +255,7 @@ static int __init lcd_driver_init(void)
     }
 
     printk(KERN_INFO "Successfully Load LCD Device Driver: Major = %d, Minor = %d\n", MAJOR(device_dev), MINOR(device_dev));
-    return 0;
+    return DRIVER_SUCCUSS;
 }
 
 static void __exit lcd_driver_exit(void)

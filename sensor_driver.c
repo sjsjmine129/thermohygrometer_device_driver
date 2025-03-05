@@ -14,10 +14,10 @@ int set_sensor_data_type(enum sensor_data_types new_data_type)
     if(!(new_data_type == GET_BOTH || new_data_type == GET_TEMPERATURE || new_data_type == GET_HUMIDITY))
     {
         printk(KERN_ALERT "wrong datatype code!\n");
-        return -1;
+        return DRIVER_FAIL;
     }
     sensor_data_type = new_data_type;
-    return 0;
+    return DRIVER_SUCCUSS;
 }
 
 // set timeout_second
@@ -26,11 +26,11 @@ int set_measure_time(int new_time)
     if(new_time <= 0 || new_time > 60 )
     {
         printk(KERN_ALERT "wrong measure time gap\n");
-        return -1;
+        return DRIVER_FAIL;
     }
 
     timeout_second = new_time;
-    return 0;
+    return DRIVER_SUCCUSS;
 }
 
 
@@ -44,17 +44,17 @@ int send_command_to_sensor(uint16_t command_code, struct i2c_client *client)
     if(i2c_master_send(client, i2c_data_buffer, COMMAND_LENGTH) != COMMAND_LENGTH)
     {
         printk(KERN_ALERT "fail send %x\n", command_code);
-        return -1;
+        return DRIVER_FAIL;
     }
 
-    return 0;
+    return DRIVER_SUCCUSS;
 }
 
 static void extract_temp_humid_data(int32_t* temperature, int32_t* humidity)
 {
     //remove checksum
-    int i, j;
-    for (i = 0, j = 0; i < READ_LENGTH; i += 2 + 1) 
+    int i = 0, j = 0;
+    for (; i < READ_LENGTH; i += 2 + 1) 
     {
         i2c_data_buffer[j++] = i2c_data_buffer[i];
         i2c_data_buffer[j++] = i2c_data_buffer[i + 1];
@@ -76,8 +76,8 @@ int get_data_from_sensor(char *tmp_buf, size_t count, struct i2c_client *client)
 {
     ktime_t start_time = ktime_get();
     ktime_t timeout_time = ktime_add(start_time, ktime_set(timeout_second, 0));
-    ktime_t current_time;
-    int ret;
+    ktime_t current_time = NULL;
+    int ret = -1;
 
     int32_t temp_sum = 0;
     int32_t humid_sum = 0;
@@ -151,7 +151,7 @@ int get_data_from_sensor(char *tmp_buf, size_t count, struct i2c_client *client)
             return ret;
 
         default:
-            return -1;
+            return DRIVER_FAIL;
     }
 }
 
@@ -159,8 +159,8 @@ int get_data_from_sensor(char *tmp_buf, size_t count, struct i2c_client *client)
 int sensor_driver_open(struct inode *inode, struct file *file)
 {
 	unsigned int minor = iminor(inode);
-	struct i2c_client *client;
-	struct i2c_adapter *adap;
+	struct i2c_client *client = NULL;
+	struct i2c_adapter *adap = NULL;
 
 	adap = i2c_get_adapter(minor);
     if(!adap)
@@ -192,7 +192,7 @@ int sensor_driver_open(struct inode *inode, struct file *file)
     usleep_range(7000, 8000);
 
 	printk(KERN_ALERT "Open sht31 device! %u: i2c-dev %d\n",minor, adap->nr);
-	return 0;
+	return DRIVER_SUCCUSS;
 }
 
 // release function for device driver
@@ -207,15 +207,15 @@ int sensor_driver_release(struct inode *inode, struct file *file)
     file->private_data = NULL;
 
 	printk(KERN_ALERT "Release sht31 Device\n");
-	return 0;
+	return DRIVER_SUCCUSS;
 }
 
 
 static ssize_t sensor_driver_read(struct file *file, char __user *buf, size_t count, loff_t *offset)
 {
-    int ret;
+    int ret = -1;
 
-    if(send_command_to_sensor(REQUEST_DATA, file->private_data) != 0)
+    if(send_command_to_sensor(REQUEST_DATA, file->private_data) != DRIVER_SUCCUSS)
     { 
         printk(KERN_INFO "Read fail\n");
         return -EIO;
@@ -253,7 +253,7 @@ static ssize_t sensor_driver_read(struct file *file, char __user *buf, size_t co
 
 static long sensor_driver_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
-    int ret;
+    int ret = -1;
 
     switch (cmd) 
     {
@@ -285,7 +285,7 @@ static struct file_operations fops =
 static int sensor_probe(struct i2c_client *client)
 {
     printk(KERN_INFO "SHT31 sensor detected\n");
-    return 0;
+    return DRIVER_SUCCUSS;
 }
 
 static void sensor_remove(struct i2c_client *client)
@@ -315,7 +315,7 @@ static struct i2c_driver sensor_driver =
 
 static int __init sensor_driver_init(void)
 {
-    int ret;
+    int ret = -1;
     
     // Register character device
     if ((ret = alloc_chrdev_region(&device_dev, 1, 1, DEVICE_NAME)) < 0) 
@@ -337,7 +337,7 @@ static int __init sensor_driver_init(void)
     {
         cdev_del(&device_cdev);
         unregister_chrdev_region(device_dev, 1);
-        return -1;
+        return DRIVER_FAIL;
     }
 
     if (device_create(device_class, NULL, device_dev, NULL, DEVICE_NAME) == NULL) 
@@ -345,7 +345,7 @@ static int __init sensor_driver_init(void)
         class_destroy(device_class);
         cdev_del(&device_cdev);
         unregister_chrdev_region(device_dev, 1);
-        return -1;
+        return DRIVER_FAIL;
     }
 
     // Register I2C driver
@@ -360,7 +360,7 @@ static int __init sensor_driver_init(void)
     }
 
     printk(KERN_INFO "Successfully Load SHT31 Device Driver: Major = %d, Minor = %d\n", MAJOR(device_dev), MINOR(device_dev));
-    return 0;
+    return DRIVER_SUCCUSS;
 }
 
 static void __exit sensor_driver_exit(void)
