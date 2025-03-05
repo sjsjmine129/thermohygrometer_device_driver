@@ -4,7 +4,7 @@ static dev_t device_dev;
 static struct class *device_class;
 static struct cdev device_cdev;
 
-uint8_t i2c_data_buffer[2] = {0};
+static uint8_t i2c_data_buffer[2] = {0};
 
 static struct file_operations fops = 
 {
@@ -32,7 +32,7 @@ static struct i2c_driver lcd_driver =
 };
 
 // announce send the data or command to lcd
-int lcdToggleEnable(int bits, struct i2c_client *client) 
+static int lcdToggleEnable(int bits, struct i2c_client *client) 
 {
     char data = bits | ENABLE; // make enable bit high
     if(i2c_master_send(client, &data, SEND_LENGTH) != 1)
@@ -51,7 +51,7 @@ int lcdToggleEnable(int bits, struct i2c_client *client)
     return DRIVER_SUCCUSS;
 }
 
-int send_data_to_lcd(uint16_t data, uint16_t data_type, struct i2c_client *client)
+static int send_data_to_lcd(uint16_t data, uint16_t data_type, struct i2c_client *client)
 {
     //set data
     i2c_data_buffer[0] = data_type | (data & 0xF0) | LCD_BACKLIGHT; 
@@ -74,7 +74,7 @@ int send_data_to_lcd(uint16_t data, uint16_t data_type, struct i2c_client *clien
     return DRIVER_SUCCUSS;
 }
 
-int send_command_to_lcd(uint16_t command, struct i2c_client *client)
+static int send_command_to_lcd(uint16_t command, struct i2c_client *client)
 {
     if(send_data_to_lcd(command, LCD_CMD, client) != DRIVER_SUCCUSS)
     {
@@ -85,7 +85,7 @@ int send_command_to_lcd(uint16_t command, struct i2c_client *client)
     return DRIVER_SUCCUSS;
 }
 
-int write_text_to_lcd(const char *text, int length, struct i2c_client *client) 
+static int write_text_to_lcd(const char *text, int length, struct i2c_client *client) 
 {
     int write_len = 0;
 
@@ -102,7 +102,7 @@ int write_text_to_lcd(const char *text, int length, struct i2c_client *client)
     return write_len;
 }
 
-int lcd_driver_open(struct inode *inode, struct file *file)
+static int lcd_driver_open(struct inode *inode, struct file *file)
 {
 	unsigned int minor = iminor(inode);
 	struct i2c_client *client = NULL;
@@ -140,7 +140,7 @@ int lcd_driver_open(struct inode *inode, struct file *file)
 }
 
 // release function for device driver
-int lcd_driver_release(struct inode *inode, struct file *file)
+static int lcd_driver_release(struct inode *inode, struct file *file)
 {
    struct i2c_client *client = file->private_data;
 

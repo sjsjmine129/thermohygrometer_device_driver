@@ -4,9 +4,9 @@ static dev_t device_dev;
 static struct class *device_class;
 static struct cdev device_cdev;
 
-uint8_t i2c_data_buffer[6] = {0};
-enum sensor_data_types sensor_data_type = GET_BOTH;
-int timeout_second = 1;
+static uint8_t i2c_data_buffer[6] = {0};
+static enum sensor_data_types sensor_data_type = GET_BOTH;
+static int timeout_second = 1;
 
 static struct file_operations fops = 
 {
@@ -35,7 +35,7 @@ static struct i2c_driver sensor_driver =
 };
 
 // set sensor data_type
-int set_sensor_data_type(enum sensor_data_types new_data_type)
+static int set_sensor_data_type(enum sensor_data_types new_data_type)
 {
     if(!(new_data_type == GET_BOTH || new_data_type == GET_TEMPERATURE || new_data_type == GET_HUMIDITY))
     {
@@ -47,7 +47,7 @@ int set_sensor_data_type(enum sensor_data_types new_data_type)
 }
 
 // set timeout_second
-int set_measure_time(int new_time)
+static int set_measure_time(int new_time)
 {
     if(new_time <= 0 || new_time > 60 )
     {
@@ -60,7 +60,7 @@ int set_measure_time(int new_time)
 }
 
 
-int send_command_to_sensor(uint16_t command_code, struct i2c_client *client)
+static int send_command_to_sensor(uint16_t command_code, struct i2c_client *client)
 {
     //set command
     i2c_data_buffer[0] = (uint8_t)((command_code & 0xFF00) >> 8);
@@ -98,7 +98,7 @@ static void extract_temp_humid_data(int32_t* temperature, int32_t* humidity)
     }
 }
 
-int get_data_from_sensor(char *tmp_buf, size_t count, struct i2c_client *client)
+static int get_data_from_sensor(char *tmp_buf, size_t count, struct i2c_client *client)
 {
     ktime_t start_time = ktime_get();
     ktime_t timeout_time = ktime_add(start_time, ktime_set(timeout_second, 0));
