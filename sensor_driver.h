@@ -15,7 +15,6 @@
 #define COMMAND_LENGTH 2
 #define READ_LENGTH 6
 
-
 enum sensor_data_types 
 {
     GET_BOTH,
