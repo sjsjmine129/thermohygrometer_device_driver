@@ -15,9 +15,6 @@
 #define COMMAND_LENGTH 2
 #define READ_LENGTH 6
 
-#define DRIVER_SUCCUSS 0
-#define DRIVER_FAIL -1
-
 enum sensor_data_types 
 {
     GET_BOTH,
