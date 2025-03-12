@@ -20,6 +20,12 @@ enum sensor_data_types
     GET_HUMIDITY,
 };
 
+struct air_condition_data
+{
+    int temperature;
+    int humidity;
+};
+
 int measure_air_condition(enum sensor_data_types sensor_data_type, int repeat, int time_gap);
 
 int clear_screen();

@@ -3,7 +3,7 @@
 
 int main()
 {
-    int ret = measure_air_condition(GET_TEMPERATURE_HUMIDITY, 5, 1);
+    int ret = measure_air_condition(GET_HUMIDITY, 5, 1);
     if(ret != THERMO_SUCCESS)
     {
         return ret;

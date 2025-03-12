@@ -30,6 +30,12 @@ enum command_codes
     REQUEST_DATA = 0xe000,
 };
 
+struct air_condition_data
+{
+    int32_t temperature;
+    int32_t humidity;
+};
+
 static int sensor_driver_open(struct inode *inode, struct file *file);
 
 static int sensor_driver_release(struct inode *inode, struct file *file);

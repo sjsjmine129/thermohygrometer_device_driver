@@ -5,6 +5,7 @@
         "termios.h": "c",
         "device.h": "c",
         "thermohygrometer.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "compare": "c"
     }
 }

@@ -14,6 +14,7 @@ thermo_results measure_air_condition(enum sensor_data_types sensor_data_type, in
         return THERMO_FAIL_WRONG_PARAMS;
     }
 
+    struct air_condition_data air_condition_data;
     char buff[100] = {0};
 
     //open dev
@@ -54,8 +55,30 @@ thermo_results measure_air_condition(enum sensor_data_types sensor_data_type, in
     {
         memset(buff, '\0', sizeof(buff));
 
-        if(read(sht31_dev, buff, sizeof(buff)) <= 0)
+        if(read(sht31_dev, &air_condition_data, sizeof(struct air_condition_data)) != sizeof(struct air_condition_data))
         {
+            i -= 1;
+            continue;
+        }
+
+        printf("Data: %d, %d\n", air_condition_data.temperature, air_condition_data.humidity);
+        
+        //make text to show
+        if(air_condition_data.temperature != -1 && air_condition_data.humidity != -1)
+        {
+            snprintf(buff, 19,"%d.%03d C\n%d.%03dRH%%", air_condition_data.temperature/1000, air_condition_data.temperature%1000, air_condition_data.humidity/1000, air_condition_data.humidity%1000);
+            buff[6] = 0xDF; // add '°'
+        }
+        else if(air_condition_data.temperature != -1)
+        {
+            snprintf(buff, 9,"%d.%03d C", air_condition_data.temperature/1000, air_condition_data.temperature%1000);
+            buff[6] = 0xDF; // add '°'
+        }
+        else if(air_condition_data.humidity != -1)
+        {
+            snprintf(buff, 10,"%d.%03dRH%%", air_condition_data.humidity/1000, air_condition_data.humidity%1000);
+        }
+        else{
             i -= 1;
             continue;
         }
