@@ -5,12 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TH_SUCCESS 0
-#define TH_FAIL -1
-#define TH_FAIL_WRONG_PARAMS -2
-#define TH_FAIL_OPEN_SENSOR_DEVICE -3
-#define TH_FAIL_OPEN_LCD_DEVICE -4
-#define TH_FAIL_SETTING_DEVICE -5
+typedef enum {
+    THERMO_SUCCESS = 0,
+    THERMO_FAIL_WRONG_PARAMS = -2,
+    THERMO_FAIL_OPEN_SENSOR_DEVICE = -3,
+    THERMO_FAIL_OPEN_LCD_DEVICE = -4,
+    THERMO_FAIL_SETTING_DEVICE = -5,
+}thermo_results;
 
 enum sensor_data_types
 {
