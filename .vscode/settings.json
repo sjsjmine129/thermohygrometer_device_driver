@@ -6,6 +6,7 @@
         "device.h": "c",
         "thermohygrometer.h": "c",
         "stdlib.h": "c",
-        "compare": "c"
+        "compare": "c",
+        "unistd.h": "c"
     }
 }

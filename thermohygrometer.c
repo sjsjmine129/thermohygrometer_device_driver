@@ -48,8 +48,6 @@ thermo_results measure_air_condition(enum sensor_data_types sensor_data_type, in
         return THERMO_FAIL_OPEN_LCD_DEVICE;
     }
 
-
-    
     //measure loop
     for(int i = 0; i < repeat; i++)
     {

@@ -1,6 +1,6 @@
 cd device_driver
 
-make clean
+# make clean
 sudo rmmod sensor_driver
 sudo rmmod lcd_driver
 
