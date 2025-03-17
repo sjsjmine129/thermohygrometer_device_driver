@@ -7,7 +7,7 @@ thermo_results measure_air_condition(enum sensor_data_types sensor_data_type, in
 
     //check params
     if((sensor_data_type != GET_HUMIDITY && sensor_data_type != GET_TEMPERATURE && sensor_data_type != GET_TEMPERATURE_HUMIDITY)
-        ||(repeat <= 1)
+        ||(repeat < 1)
         ||(time_gap <= 0 || time_gap > 60))
     {
         printf("Fail: Wrong params\n");
